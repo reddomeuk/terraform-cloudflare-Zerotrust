@@ -1,0 +1,3 @@
+{
+  "destination_conf": "azure://sentinelsalt1nzs.blob.core.windows.net/sentineldata?sas=sp=rw&st=2025-05-04T14:20:50Z&se=2026-05-07T22:20:50Z&spr=https&sv=2024-11-04&sr=c&sig=ZSBL%2FSQvOqtt4mqISe5OZ%2BofFrwmmYmVK5jSh%2BlGCRE%3D"
+}

@@ -1,9 +1,8 @@
-# terraform/modules/idp/main.tf
 terraform {
   required_providers {
     cloudflare = {
       source  = "cloudflare/cloudflare"
-      version = ">=4.40.0"
+      version = ">=4.40.0"  # Keep compatible with version 4
     }
   }
 }
@@ -21,15 +20,43 @@ resource "cloudflare_zero_trust_access_identity_provider" "microsoft_entra_id" {
   }
 }
 
-# Replace the current security_teams group with this
-resource "cloudflare_zero_trust_access_group" "security_teams" {
+# Red Team Access Group
+resource "cloudflare_zero_trust_access_group" "red_team" {
   account_id = var.account_id
-  name = "Security Teams"
+  name       = var.red_team_name
   
   include {
     azure {
-      id = ["a3008467-e39c-43f6-a7ad-4769bcefe01e", "5a071d2a-8597-4096-a6b3-1d702cfab3c4"]
+      id = var.red_team_group_ids
       identity_provider_id = cloudflare_zero_trust_access_identity_provider.microsoft_entra_id.id
     }
+  }
+}
+
+# Blue Team Access Group
+resource "cloudflare_zero_trust_access_group" "blue_team" {
+  account_id = var.account_id
+  name       = var.blue_team_name
+  
+  include {
+    azure {
+      id = var.blue_team_group_ids
+      identity_provider_id = cloudflare_zero_trust_access_identity_provider.microsoft_entra_id.id
+    }
+  }
+}
+
+# Additional Access Group - Device Requirements
+resource "cloudflare_zero_trust_access_group" "secure_devices" {
+  account_id = var.account_id
+  name       = "Secure Devices"
+  
+  # Add an include block with everyone = true to meet requirement
+  include {
+    everyone = true
+  }
+  
+  require {
+    device_posture = ["disk_encryption", "os_version"]
   }
 }
