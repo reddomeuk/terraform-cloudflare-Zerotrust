@@ -1,5 +1,5 @@
 variable "account_id" {
-  description = "Cloudflare Account ID"
+  description = "Cloudflare account ID"
   type        = string
 }
 
@@ -56,5 +56,27 @@ variable "device_posture_rule_ids" {
 
 variable "azure_ad_provider_id" {
   description = "ID of the Azure AD identity provider"
+  type        = string
+}
+
+variable "red_team_app_domain" {
+  description = "Domain for the Red Team application"
+  type        = string
+  default     = "redteam.reddome.org"
+}
+
+variable "blue_team_app_domain" {
+  description = "Domain for the Blue Team application"
+  type        = string
+  default     = "blueteam.reddome.org"
+}
+
+variable "red_team_group_id" {
+  description = "ID of the Red Team access group"
+  type        = string
+}
+
+variable "blue_team_group_id" {
+  description = "ID of the Blue Team access group"
   type        = string
 }
