@@ -49,12 +49,12 @@ output "blue_team_tunnel_token" {
 
 output "red_team_tunnel_secret" {
   description = "Secret for the Red Team tunnel"
-  value       = random_password.red_tunnel_secret.result
+  value       = random_id.red_team_tunnel_secret.b64_std
   sensitive   = true
 }
 
 output "blue_team_tunnel_secret" {
   description = "Secret for the Blue Team tunnel"
-  value       = random_password.blue_tunnel_secret.result
+  value       = random_id.blue_team_tunnel_secret.b64_std
   sensitive   = true
 }
