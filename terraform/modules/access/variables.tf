@@ -53,3 +53,8 @@ variable "device_posture_rule_ids" {
   type        = list(string)
   default     = []
 }
+
+variable "azure_ad_provider_id" {
+  description = "ID of the Azure AD identity provider"
+  type        = string
+}

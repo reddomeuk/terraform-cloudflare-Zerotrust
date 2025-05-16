@@ -24,7 +24,7 @@ resource "cloudflare_zero_trust_access_application" "app" {
 # Red Team specific application
 resource "cloudflare_zero_trust_access_application" "red_team_app" {
   account_id           = var.account_id
-  name                 = "Red Team - ${var.app_name}"
+  name                 = "RedTeam-Security-Group-App"
   domain               = "redteam.reddome.org"
   type                 = "self_hosted"
   session_duration     = "24h"
@@ -34,7 +34,7 @@ resource "cloudflare_zero_trust_access_application" "red_team_app" {
 # Blue Team specific application
 resource "cloudflare_zero_trust_access_application" "blue_team_app" {
   account_id           = var.account_id
-  name                 = "Blue Team - ${var.app_name}"
+  name                 = "BlueTeam-Security-Group-App"
   domain               = "blueteam.reddome.org"
   type                 = "self_hosted"
   session_duration     = "24h"
@@ -58,12 +58,19 @@ resource "cloudflare_zero_trust_access_policy" "email_policy" {
 resource "cloudflare_zero_trust_access_policy" "red_team_policy" {
   account_id     = var.account_id
   application_id = cloudflare_zero_trust_access_application.app.id
-  name           = "Red Team Access"
+  name           = "RedTeam-Security-Group-Access"
   precedence     = 1
   decision       = "allow"
 
   include {
     group = [var.red_team_id]
+  }
+  
+  include {
+    gsuite {
+      email = var.red_team_group_ids
+      identity_provider_id = var.azure_ad_provider_id
+    }
   }
   
   # Require device posture check for disk encryption
@@ -76,12 +83,19 @@ resource "cloudflare_zero_trust_access_policy" "red_team_policy" {
 resource "cloudflare_zero_trust_access_policy" "blue_team_policy" {
   account_id     = var.account_id
   application_id = cloudflare_zero_trust_access_application.app.id
-  name           = "Blue Team Access"
-  precedence     = 3  # Changed from 1 to 3 to make it unique
+  name           = "BlueTeam-Security-Group-Access"
+  precedence     = 3
   decision       = "allow"
 
   include {
     group = [var.blue_team_id]
+  }
+
+  include {
+    gsuite {
+      email = var.blue_team_group_ids
+      identity_provider_id = var.azure_ad_provider_id
+    }
   }
   
   # Require device posture check for disk encryption
@@ -94,12 +108,19 @@ resource "cloudflare_zero_trust_access_policy" "blue_team_policy" {
 resource "cloudflare_zero_trust_access_policy" "red_team_exclusive_policy" {
   account_id     = var.account_id
   application_id = cloudflare_zero_trust_access_application.red_team_app.id
-  name           = "Red Team Only Access"
+  name           = "RedTeam-Security-Group-Exclusive-Access"
   precedence     = 1
   decision       = "allow"
 
   include {
     group = [var.red_team_id]
+  }
+
+  include {
+    gsuite {
+      email = var.red_team_group_ids
+      identity_provider_id = var.azure_ad_provider_id
+    }
   }
   
   # Require device posture check for disk encryption
@@ -112,12 +133,19 @@ resource "cloudflare_zero_trust_access_policy" "red_team_exclusive_policy" {
 resource "cloudflare_zero_trust_access_policy" "blue_team_exclusive_policy" {
   account_id     = var.account_id
   application_id = cloudflare_zero_trust_access_application.blue_team_app.id
-  name           = "Blue Team Only Access"
+  name           = "BlueTeam-Security-Group-Exclusive-Access"
   precedence     = 1
   decision       = "allow"
 
   include {
     group = [var.blue_team_id]
+  }
+
+  include {
+    gsuite {
+      email = var.blue_team_group_ids
+      identity_provider_id = var.azure_ad_provider_id
+    }
   }
   
   # Require device posture check for disk encryption
@@ -129,7 +157,7 @@ resource "cloudflare_zero_trust_access_policy" "blue_team_exclusive_policy" {
 # Red Team tunnel
 resource "cloudflare_zero_trust_tunnel_cloudflared" "red_team" {
   account_id = var.account_id
-  name       = "red-team-tunnel"
+  name       = "RedTeam-Security-Group-Tunnel"
   secret     = base64encode(random_password.red_tunnel_secret.result)
 }
 
@@ -148,6 +176,17 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "red_team" {
       service  = "http://localhost:8080"
     }
     ingress_rule {
+      hostname = "report.reddome.org"
+      service  = "http://localhost:8000"
+    }
+    ingress_rule {
+      hostname = "nessus.reddome.org"
+      service  = "https://localhost:8834"
+      origin_request {
+        no_tls_verify = true
+      }
+    }
+    ingress_rule {
       service = "http_status:404"
     }
   }
@@ -156,7 +195,7 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "red_team" {
 # Blue Team tunnel
 resource "cloudflare_zero_trust_tunnel_cloudflared" "blue_team" {
   account_id = var.account_id
-  name       = "blue-team-tunnel"
+  name       = "BlueTeam-Security-Group-Tunnel"
   secret     = base64encode(random_password.blue_tunnel_secret.result)
 }
 

@@ -83,6 +83,7 @@ module "access" {
   blue_team_id   = module.idp.blue_team_id
   red_team_group_ids = var.red_team_group_ids
   blue_team_group_ids = var.blue_team_group_ids
+  azure_ad_provider_id = module.idp.entra_idp_id
   device_posture_rule_ids = [
     module.device_posture.disk_encryption_rule_id,
     module.device_posture.os_version_rule_id,
