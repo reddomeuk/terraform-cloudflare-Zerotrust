@@ -1,3 +1,20 @@
+# IDP Module - Must be defined first as it provides group IDs used by other modules
+module "idp" {
+  source = "./modules/idp"
+
+  account_id = var.account_id
+  
+  # Azure AD configuration
+  azure_client_id     = var.azure_client_id
+  azure_client_secret = var.azure_client_secret
+  azure_directory_id  = var.azure_directory_id
+  
+  # Team group IDs
+  red_team_group_ids  = var.red_team_group_ids
+  blue_team_group_ids = var.blue_team_group_ids
+}
+
+# Access Module - Uses group IDs from IDP module
 module "access" {
   source = "./modules/access"
 
