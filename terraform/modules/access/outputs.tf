@@ -27,23 +27,23 @@ output "shared_app_domain" {
 # Tunnel Outputs
 output "red_team_tunnel_id" {
   description = "ID of the Red Team tunnel"
-  value       = cloudflare_tunnel.red_team.id
+  value       = cloudflare_zero_trust_tunnel_cloudflared.red_team.id
 }
 
 output "blue_team_tunnel_id" {
   description = "ID of the Blue Team tunnel"
-  value       = cloudflare_tunnel.blue_team.id
+  value       = cloudflare_zero_trust_tunnel_cloudflared.blue_team.id
 }
 
 output "red_team_tunnel_token" {
   description = "Tunnel token for the Red Team tunnel"
-  value       = cloudflare_tunnel.red_team.tunnel_token
+  value       = cloudflare_zero_trust_tunnel_cloudflared.red_team.tunnel_token
   sensitive   = true
 }
 
 output "blue_team_tunnel_token" {
   description = "Tunnel token for the Blue Team tunnel"
-  value       = cloudflare_tunnel.blue_team.tunnel_token
+  value       = cloudflare_zero_trust_tunnel_cloudflared.blue_team.tunnel_token
   sensitive   = true
 }
 
