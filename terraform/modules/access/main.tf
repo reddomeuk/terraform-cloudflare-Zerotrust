@@ -25,19 +25,21 @@ resource "cloudflare_zero_trust_access_application" "app" {
 }
 
 # Red Team Access Application
-resource "cloudflare_zero_trust_access_application" "red_team_app" {
+resource "cloudflare_zero_trust_access_application" "red_team" {
   account_id = var.account_id
-  name       = "Red Team App"
+  name       = "${var.red_team_name} Application"
   domain     = var.red_team_app_domain
   type       = "self_hosted"
+  session_duration = "24h"
 }
 
 # Blue Team Access Application
-resource "cloudflare_zero_trust_access_application" "blue_team_app" {
+resource "cloudflare_zero_trust_access_application" "blue_team" {
   account_id = var.account_id
-  name       = "Blue Team App"
+  name       = "${var.blue_team_name} Application"
   domain     = var.blue_team_app_domain
   type       = "self_hosted"
+  session_duration = "24h"
 }
 
 # Policy for email-based access to the shared app
@@ -54,51 +56,49 @@ resource "cloudflare_zero_trust_access_policy" "email_policy" {
 }
 
 # Red Team Access Policy
-resource "cloudflare_zero_trust_access_policy" "red_team_policy" {
+resource "cloudflare_zero_trust_access_policy" "red_team" {
   account_id = var.account_id
-  name       = "Red Team Access"
-  precedence = 1
+  name       = "${var.red_team_name} Access Policy"
+  application_id = cloudflare_zero_trust_access_application.red_team.id
   decision   = "allow"
+  precedence = 1
 
   include {
     group = [var.red_team_group_id]
   }
 
-  application_id = cloudflare_zero_trust_access_application.red_team_app.id
+  require {
+    device_posture = var.device_posture_rule_ids
+  }
 }
 
 # Blue Team Access Policy
-resource "cloudflare_zero_trust_access_policy" "blue_team_policy" {
+resource "cloudflare_zero_trust_access_policy" "blue_team" {
   account_id = var.account_id
-  name       = "Blue Team Access"
-  precedence = 2
+  name       = "${var.blue_team_name} Access Policy"
+  application_id = cloudflare_zero_trust_access_application.blue_team.id
   decision   = "allow"
+  precedence = 2
 
   include {
     group = [var.blue_team_group_id]
   }
 
-  application_id = cloudflare_zero_trust_access_application.blue_team_app.id
+  require {
+    device_posture = var.device_posture_rule_ids
+  }
 }
 
 # Red Team Tunnel
-resource "cloudflare_tunnel" "red_team" {
+resource "cloudflare_zero_trust_tunnel_cloudflared" "red_team" {
   account_id = var.account_id
-  name       = "red-team-tunnel"
-  secret     = random_password.red_tunnel_secret.result
+  name       = "${var.red_team_name}-tunnel"
+  secret     = random_id.red_team_tunnel_secret.b64_std
 }
 
-# Blue Team Tunnel
-resource "cloudflare_tunnel" "blue_team" {
+resource "cloudflare_zero_trust_tunnel_cloudflared_config" "red_team" {
   account_id = var.account_id
-  name       = "blue-team-tunnel"
-  secret     = random_password.blue_tunnel_secret.result
-}
-
-# Red Team Tunnel Configuration
-resource "cloudflare_tunnel_config" "red_team" {
-  account_id = var.account_id
-  tunnel_id  = cloudflare_tunnel.red_team.id
+  tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.red_team.id
 
   config {
     ingress_rule {
@@ -111,15 +111,21 @@ resource "cloudflare_tunnel_config" "red_team" {
   }
 }
 
-# Blue Team Tunnel Configuration
-resource "cloudflare_tunnel_config" "blue_team" {
+# Blue Team Tunnel
+resource "cloudflare_zero_trust_tunnel_cloudflared" "blue_team" {
   account_id = var.account_id
-  tunnel_id  = cloudflare_tunnel.blue_team.id
+  name       = "${var.blue_team_name}-tunnel"
+  secret     = random_id.blue_team_tunnel_secret.b64_std
+}
+
+resource "cloudflare_zero_trust_tunnel_cloudflared_config" "blue_team" {
+  account_id = var.account_id
+  tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.blue_team.id
 
   config {
     ingress_rule {
       hostname = var.blue_team_app_domain
-      service  = "http://localhost:8001"
+      service  = "http://localhost:8000"
     }
     ingress_rule {
       service = "http_status:404"
@@ -127,13 +133,11 @@ resource "cloudflare_tunnel_config" "blue_team" {
   }
 }
 
-# Generate random secrets for tunnels
-resource "random_password" "red_tunnel_secret" {
-  length  = 32
-  special = false
+# Tunnel Secrets
+resource "random_id" "red_team_tunnel_secret" {
+  byte_length = 32
 }
 
-resource "random_password" "blue_tunnel_secret" {
-  length  = 32
-  special = false
+resource "random_id" "blue_team_tunnel_secret" {
+  byte_length = 32
 }
