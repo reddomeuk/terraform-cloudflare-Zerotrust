@@ -180,35 +180,6 @@ resource "cloudflare_zero_trust_access_policy" "blue_team_warp_policy" {
   }
 }
 
-# WARP Client Configuration
-# Sets up the WARP client with team-specific settings and security requirements
-resource "cloudflare_zero_trust_warp_client" "warp" {
-  account_id = var.account_id
-  name       = var.warp_name
-  enabled    = true
-
-  # Device enrollment settings
-  device_enrollment {
-    enabled = true
-    require_all = true
-    rules {
-      platform = "windows"
-      os_version {
-        operator = ">="
-        version  = "10.0.19044"
-      }
-    }
-  }
-
-  # Security settings
-  security {
-    tls_verify = true
-    dns {
-      servers = ["1.1.1.1", "1.0.0.1"]
-    }
-  }
-}
-
 # WARP Device Posture Integration
 resource "cloudflare_zero_trust_device_posture_integration" "warp" {
   account_id = var.account_id

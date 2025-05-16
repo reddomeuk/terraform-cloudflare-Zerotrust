@@ -19,15 +19,22 @@ output "blue_team_app_domain" {
   value       = cloudflare_zero_trust_access_application.blue_team_app.domain
 }
 
+output "shared_app_domain" {
+  description = "Domain of the shared application"
+  value       = cloudflare_zero_trust_access_application.app.domain
+}
+
 # Tunnel Outputs
 output "red_team_tunnel_id" {
   description = "ID of the Red Team tunnel"
   value       = cloudflare_zero_trust_tunnel_cloudflared.red_team.id
+  sensitive   = true
 }
 
 output "blue_team_tunnel_id" {
   description = "ID of the Blue Team tunnel"
   value       = cloudflare_zero_trust_tunnel_cloudflared.blue_team.id
+  sensitive   = true
 }
 
 output "red_team_tunnel_token" {
