@@ -99,15 +99,15 @@ resource "random_id" "blue_team_tunnel_secret" {
 }
 
 # Red Team Tunnel
-resource "cloudflare_tunnel" "red_team" {
+resource "cloudflare_zero_trust_tunnel_cloudflared" "red_team" {
   account_id = var.account_id
   name       = "${var.red_team_name}-tunnel"
   secret     = random_id.red_team_tunnel_secret.b64_std
 }
 
-resource "cloudflare_tunnel_config" "red_team" {
+resource "cloudflare_zero_trust_tunnel_cloudflared_config" "red_team" {
   account_id = var.account_id
-  tunnel_id  = cloudflare_tunnel.red_team.id
+  tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.red_team.id
 
   config {
     ingress_rule {
@@ -121,15 +121,15 @@ resource "cloudflare_tunnel_config" "red_team" {
 }
 
 # Blue Team Tunnel
-resource "cloudflare_tunnel" "blue_team" {
+resource "cloudflare_zero_trust_tunnel_cloudflared" "blue_team" {
   account_id = var.account_id
   name       = "${var.blue_team_name}-tunnel"
   secret     = random_id.blue_team_tunnel_secret.b64_std
 }
 
-resource "cloudflare_tunnel_config" "blue_team" {
+resource "cloudflare_zero_trust_tunnel_cloudflared_config" "blue_team" {
   account_id = var.account_id
-  tunnel_id  = cloudflare_tunnel.blue_team.id
+  tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.blue_team.id
 
   config {
     ingress_rule {
