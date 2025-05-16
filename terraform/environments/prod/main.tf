@@ -76,7 +76,6 @@ module "access" {
   source = "../../modules/access"
   account_id     = var.account_id
   app_name       = "reddome-${terraform.workspace}"
-  app_domain     = "app-${terraform.workspace}.reddome.org"
   allowed_emails = ["user@reddome.org"]
   red_team_name  = var.red_team_name
   blue_team_name = var.blue_team_name

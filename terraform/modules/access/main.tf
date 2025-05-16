@@ -15,7 +15,7 @@ terraform {
 resource "cloudflare_zero_trust_access_application" "app" {
   account_id           = var.account_id
   name                 = var.app_name
-  domain               = var.app_domain
+  domain               = "reddome.org"
   type                 = "self_hosted"
   session_duration     = "24h"
   app_launcher_visible = true
@@ -25,7 +25,7 @@ resource "cloudflare_zero_trust_access_application" "app" {
 resource "cloudflare_zero_trust_access_application" "red_team_app" {
   account_id           = var.account_id
   name                 = "Red Team - ${var.app_name}"
-  domain               = "redteam.${var.app_domain}"
+  domain               = "redteam.reddome.org"
   type                 = "self_hosted"
   session_duration     = "24h"
   app_launcher_visible = true
@@ -35,7 +35,7 @@ resource "cloudflare_zero_trust_access_application" "red_team_app" {
 resource "cloudflare_zero_trust_access_application" "blue_team_app" {
   account_id           = var.account_id
   name                 = "Blue Team - ${var.app_name}"
-  domain               = "blueteam.${var.app_domain}"
+  domain               = "blueteam.reddome.org"
   type                 = "self_hosted"
   session_duration     = "24h"
   app_launcher_visible = true
@@ -144,7 +144,7 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "red_team" {
 
   config {
     ingress_rule {
-      hostname = "redteam.${var.app_domain}"
+      hostname = "redteam.reddome.org"
       service  = "http://localhost:8080"
     }
     ingress_rule {
@@ -172,7 +172,7 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "blue_team" {
 
   config {
     ingress_rule {
-      hostname = "blueteam.${var.app_domain}"
+      hostname = "blueteam.reddome.org"
       service  = "http://localhost:8081"
       # Add origin request settings
       origin_request {

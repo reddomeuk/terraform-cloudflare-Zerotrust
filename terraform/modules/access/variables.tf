@@ -8,11 +8,6 @@ variable "app_name" {
   type        = string
 }
 
-variable "app_domain" {
-  description = "Application Domain"
-  type        = string
-}
-
 variable "allowed_emails" {
   description = "List of allowed email addresses"
   type        = list(string)
