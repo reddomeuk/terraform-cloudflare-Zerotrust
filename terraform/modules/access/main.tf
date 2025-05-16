@@ -100,6 +100,11 @@ resource "cloudflare_zero_trust_access_policy" "blue_team" {
   }
 }
 
+# TEMPORARY: Comment out tunnel resources to clear state
+# We'll add them back in the next step after this applies
+# The existing tunnels are causing issues because they're in a broken state
+
+/*
 # Tunnel Secrets
 resource "random_id" "red_team_tunnel_secret" {
   byte_length = 32
@@ -156,3 +161,4 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "blue_team" {
 
   depends_on = [cloudflare_zero_trust_tunnel_cloudflared.blue_team]
 }
+*/
