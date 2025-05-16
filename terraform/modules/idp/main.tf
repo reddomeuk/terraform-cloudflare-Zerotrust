@@ -29,8 +29,8 @@ resource "cloudflare_zero_trust_access_group" "red_team" {
   account_id = var.account_id
   name       = var.red_team_name
   include {
-    gsuite {
-      email                = var.red_team_group_ids
+    azure {
+      id                   = var.red_team_group_ids
       identity_provider_id = cloudflare_zero_trust_access_identity_provider.entra_id.id
     }
   }
@@ -42,8 +42,8 @@ resource "cloudflare_zero_trust_access_group" "blue_team" {
   account_id = var.account_id
   name       = var.blue_team_name
   include {
-    gsuite {
-      email                = var.blue_team_group_ids
+    azure {
+      id                   = var.blue_team_group_ids
       identity_provider_id = cloudflare_zero_trust_access_identity_provider.entra_id.id
     }
   }

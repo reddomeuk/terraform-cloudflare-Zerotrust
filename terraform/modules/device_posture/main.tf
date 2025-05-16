@@ -14,7 +14,7 @@ terraform {
 resource "cloudflare_zero_trust_device_posture_integration" "intune" {
   account_id = var.account_id
   name       = "Microsoft Intune"
-  type       = "workspace_one"
+  type       = "intune"
   interval   = "30m"
   config {
     client_id     = var.intune_client_id
@@ -62,7 +62,7 @@ resource "cloudflare_zero_trust_device_posture_rule" "os_version" {
 resource "cloudflare_zero_trust_device_posture_rule" "intune_compliance" {
   account_id = var.account_id
   name       = "Intune Compliance Check"
-  type       = "workspace_one"
+  type       = "intune"
   description = "Checks device compliance through Microsoft Intune"
   schedule   = "30m"
   match {

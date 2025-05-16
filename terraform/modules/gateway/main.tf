@@ -22,7 +22,7 @@ resource "cloudflare_zero_trust_dns_location" "gateway" {
   }
   
   networks {
-    network = "192.168.1.0/24"
+    network = "10.0.0.0/8"  # Using a standard private network range
   }
 }
 
@@ -36,7 +36,8 @@ resource "cloudflare_zero_trust_gateway_policy" "security_blocks" {
   enabled    = true
   description = "Blocks access to known malicious domains and content"
 
-  filters = ["security-threats"]
+  filters = ["dns"]
+  traffic = "any(dns.security_category[*] in {4 7 9 80})"  # Malware, phishing, botnets, etc.
 }
 
 # Security Tools Access Policy
@@ -49,7 +50,8 @@ resource "cloudflare_zero_trust_gateway_policy" "security_tools" {
   enabled    = true
   description = "Allows access to approved security tools and resources"
 
-  filters = ["security-tools"]
+  filters = ["dns"]
+  traffic = "any(dns.domains[*] in {\"kali.org\" \"metasploit.com\" \"hackerone.com\" \"splunk.com\" \"elastic.co\" \"sentinelone.com\"})"
 }
 
 # DNS Filtering Policy
