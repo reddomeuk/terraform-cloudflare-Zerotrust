@@ -10,12 +10,17 @@ terraform {
   }
 }
 
-# Microsoft Entra ID Integration
-# Configures Microsoft Entra ID as the primary identity provider
+# Handle resource transitions
+moved {
+  from = cloudflare_zero_trust_access_identity_provider.microsoft_entra_id
+  to   = cloudflare_zero_trust_access_identity_provider.entra_id
+}
+
+# Azure AD Identity Provider
 resource "cloudflare_zero_trust_access_identity_provider" "entra_id" {
   account_id = var.account_id
-  name       = "Microsoft Entra ID"
-  type       = "azureAD"
+  name       = "Azure AD"
+  type       = "azure-ad"
   config {
     client_id     = var.azure_client_id
     client_secret = var.azure_client_secret

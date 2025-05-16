@@ -14,6 +14,17 @@ terraform {
   }
 }
 
+# Handle resource transitions
+moved {
+  from = cloudflare_zero_trust_access_application.red_team_app
+  to   = cloudflare_zero_trust_access_application.red_team
+}
+
+moved {
+  from = cloudflare_zero_trust_access_application.blue_team_app
+  to   = cloudflare_zero_trust_access_application.blue_team
+}
+
 # Shared application (accessible by both teams)
 resource "cloudflare_zero_trust_access_application" "app" {
   account_id           = var.account_id
@@ -118,6 +129,8 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "red_team" {
       service = "http_status:404"
     }
   }
+
+  depends_on = [cloudflare_zero_trust_tunnel_cloudflared.red_team]
 }
 
 # Blue Team Tunnel
@@ -140,4 +153,6 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "blue_team" {
       service = "http_status:404"
     }
   }
+
+  depends_on = [cloudflare_zero_trust_tunnel_cloudflared.blue_team]
 }
