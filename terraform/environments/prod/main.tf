@@ -85,6 +85,8 @@ module "gateway" {
 module "access" {
   source               = "../../modules/access"
   account_id           = var.account_id
+  cloudflare_account_id = var.account_id
+  domain               = "reddome.org"
   app_name             = "reddome-${terraform.workspace}"
   allowed_emails       = ["user@reddome.org"]
   red_team_name        = var.red_team_name

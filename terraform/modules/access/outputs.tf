@@ -24,9 +24,6 @@ output "shared_app_domain" {
   value       = cloudflare_zero_trust_access_application.app.domain
 }
 
-# TEMPORARY: Comment out tunnel outputs
-# We'll add them back after the tunnel resources are restored
-/*
 # Tunnel Outputs
 output "red_team_tunnel_id" {
   description = "ID of the Red Team tunnel"
@@ -39,14 +36,14 @@ output "blue_team_tunnel_id" {
 }
 
 output "red_team_tunnel_token" {
-  description = "Tunnel token for the Red Team tunnel"
-  value       = cloudflare_zero_trust_tunnel_cloudflared.red_team.tunnel_token
+  description = "Token for the Red Team tunnel"
+  value       = cloudflare_zero_trust_tunnel_cloudflared.red_team.token
   sensitive   = true
 }
 
 output "blue_team_tunnel_token" {
-  description = "Tunnel token for the Blue Team tunnel"
-  value       = cloudflare_zero_trust_tunnel_cloudflared.blue_team.tunnel_token
+  description = "Token for the Blue Team tunnel"
+  value       = cloudflare_zero_trust_tunnel_cloudflared.blue_team.token
   sensitive   = true
 }
 
@@ -61,4 +58,3 @@ output "blue_team_tunnel_secret" {
   value       = random_id.blue_team_tunnel_secret.b64_std
   sensitive   = true
 }
-*/

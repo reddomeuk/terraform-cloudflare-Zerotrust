@@ -80,3 +80,14 @@ variable "blue_team_group_id" {
   description = "ID of the Blue Team access group"
   type        = string
 }
+
+variable "cloudflare_account_id" {
+  description = "Cloudflare account ID"
+  type        = string
+}
+
+variable "domain" {
+  description = "Base domain for the application"
+  type        = string
+  default     = "reddome.org"
+}

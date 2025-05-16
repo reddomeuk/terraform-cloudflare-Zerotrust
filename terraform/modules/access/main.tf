@@ -100,11 +100,6 @@ resource "cloudflare_zero_trust_access_policy" "blue_team" {
   }
 }
 
-# TEMPORARY: Comment out tunnel resources to clear state
-# We'll add them back in the next step after this applies
-# The existing tunnels are causing issues because they're in a broken state
-
-/*
 # Tunnel Secrets
 resource "random_id" "red_team_tunnel_secret" {
   byte_length = 32
@@ -116,49 +111,44 @@ resource "random_id" "blue_team_tunnel_secret" {
 
 # Red Team Tunnel
 resource "cloudflare_zero_trust_tunnel_cloudflared" "red_team" {
-  account_id = var.account_id
-  name       = "${var.red_team_name}-tunnel"
+  account_id = var.cloudflare_account_id
+  name       = "red-team-tunnel"
   secret     = random_id.red_team_tunnel_secret.b64_std
 }
 
 resource "cloudflare_zero_trust_tunnel_cloudflared_config" "red_team" {
-  account_id = var.account_id
+  account_id = var.cloudflare_account_id
   tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.red_team.id
 
   config {
     ingress_rule {
-      hostname = var.red_team_app_domain
-      service  = "http://localhost:8000"
+      hostname = "red-team.${var.domain}"
+      service  = "http://localhost:8080"
     }
     ingress_rule {
       service = "http_status:404"
     }
   }
-
-  depends_on = [cloudflare_zero_trust_tunnel_cloudflared.red_team]
 }
 
 # Blue Team Tunnel
 resource "cloudflare_zero_trust_tunnel_cloudflared" "blue_team" {
-  account_id = var.account_id
-  name       = "${var.blue_team_name}-tunnel"
+  account_id = var.cloudflare_account_id
+  name       = "blue-team-tunnel"
   secret     = random_id.blue_team_tunnel_secret.b64_std
 }
 
 resource "cloudflare_zero_trust_tunnel_cloudflared_config" "blue_team" {
-  account_id = var.account_id
+  account_id = var.cloudflare_account_id
   tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.blue_team.id
 
   config {
     ingress_rule {
-      hostname = var.blue_team_app_domain
-      service  = "http://localhost:8000"
+      hostname = "blue-team.${var.domain}"
+      service  = "http://localhost:8080"
     }
     ingress_rule {
       service = "http_status:404"
     }
   }
-
-  depends_on = [cloudflare_zero_trust_tunnel_cloudflared.blue_team]
 }
-*/
