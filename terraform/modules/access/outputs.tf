@@ -4,13 +4,13 @@ output "app_id" {
 }
 
 output "red_team_app_id" {
-  value = cloudflare_zero_trust_access_application.red_team_app.id
-  description = "The ID of the Red Team application"
+  description = "ID of the Red Team Access Application"
+  value       = cloudflare_zero_trust_access_application.red_team_app.id
 }
 
 output "blue_team_app_id" {
-  value = cloudflare_zero_trust_access_application.blue_team_app.id
-  description = "The ID of the Blue Team application"
+  description = "ID of the Blue Team Access Application"
+  value       = cloudflare_zero_trust_access_application.blue_team_app.id
 }
 
 output "shared_app_domain" {
@@ -19,13 +19,13 @@ output "shared_app_domain" {
 }
 
 output "red_team_app_domain" {
-  value = cloudflare_zero_trust_access_application.red_team_app.domain
-  description = "Domain for the Red Team application"
+  description = "Domain of the Red Team Access Application"
+  value       = cloudflare_zero_trust_access_application.red_team_app.domain
 }
 
 output "blue_team_app_domain" {
-  value = cloudflare_zero_trust_access_application.blue_team_app.domain
-  description = "Domain for the Blue Team application"
+  description = "Domain of the Blue Team Access Application"
+  value       = cloudflare_zero_trust_access_application.blue_team_app.domain
 }
 
 output "red_team_tunnel_token" {
@@ -48,4 +48,16 @@ output "red_team_tunnel_id" {
 output "blue_team_tunnel_id" {
   description = "ID of the Blue Team tunnel"
   value       = cloudflare_zero_trust_tunnel_cloudflared.blue_team.id
+}
+
+output "red_team_tunnel_secret" {
+  description = "Secret for the Red Team tunnel"
+  value       = random_password.red_tunnel_secret.result
+  sensitive   = true
+}
+
+output "blue_team_tunnel_secret" {
+  description = "Secret for the Blue Team tunnel"
+  value       = random_password.blue_tunnel_secret.result
+  sensitive   = true
 }
