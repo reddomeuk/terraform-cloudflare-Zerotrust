@@ -15,7 +15,7 @@ terraform {
 resource "cloudflare_zero_trust_access_identity_provider" "entra_id" {
   account_id = var.account_id
   name       = "Microsoft Entra ID"
-  type       = "azure-ad"
+  type       = "azureAD"
   config {
     client_id     = var.azure_client_id
     client_secret = var.azure_client_secret

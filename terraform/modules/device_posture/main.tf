@@ -69,7 +69,7 @@ resource "cloudflare_zero_trust_device_posture_rule" "intune_compliance" {
     platform = "windows"
   }
   input {
-    compliance_status = true
+    compliance_status = "compliant"
   }
 }
 
@@ -92,5 +92,5 @@ resource "cloudflare_zero_trust_device_posture_rule" "firewall_check" {
     platform = "windows"
   }
 
-  depends_on = [cloudflare_zero_trust_device_posture_integration.intune_integration]
+  depends_on = [cloudflare_zero_trust_device_posture_integration.intune]
 }
