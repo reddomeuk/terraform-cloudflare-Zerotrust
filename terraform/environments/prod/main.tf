@@ -66,6 +66,9 @@ module "warp" {
   azure_storage_account   = var.azure_storage_account
   azure_storage_container = var.azure_storage_container
   azure_sas_token         = var.azure_sas_token
+  azure_client_id         = var.azure_client_id
+  azure_client_secret     = var.azure_client_secret
+  azure_directory_id      = var.azure_directory_id
   depends_on              = [cloudflare_zero_trust_gateway_settings.zero_trust, module.idp]
 }
 

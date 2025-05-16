@@ -1,92 +1,88 @@
 variable "account_id" {
-  description = "Cloudflare Account ID"
+  description = "Cloudflare account ID"
   type        = string
+}
+
+variable "api_token" {
+  description = "Cloudflare API token"
+  type        = string
+  sensitive   = true
 }
 
 variable "azure_client_id" {
-  description = "Azure AD Client ID"
+  description = "Azure AD client ID for authentication"
   type        = string
+  sensitive   = true
 }
 
 variable "azure_client_secret" {
-  description = "Azure AD Client Secret"
+  description = "Azure AD client secret for authentication"
   type        = string
   sensitive   = true
 }
 
 variable "azure_directory_id" {
-  description = "Azure AD Directory ID (Tenant ID)"
+  description = "Azure AD directory ID"
   type        = string
 }
 
 variable "intune_client_id" {
-  description = "Microsoft Intune Client ID for ZTNAPostureChecks app"
+  description = "Microsoft Intune client ID"
   type        = string
+  sensitive   = true
 }
 
 variable "intune_client_secret" {
-  description = "Microsoft Intune Client Secret"
+  description = "Microsoft Intune client secret"
   type        = string
   sensitive   = true
 }
 
-variable "api_token" {
-  description = "Cloudflare API Token with Zero Trust permissions"
-  type        = string
-  sensitive   = true
-}
-
-# Red team configuration
 variable "red_team_name" {
-  description = "Name for the red team access group"
+  description = "Name of the Red Team group"
   type        = string
   default     = "Red Team"
 }
 
-variable "red_team_group_ids" {
-  description = "List of Azure AD group IDs for red team members"
-  type        = list(string)
-  default     = []
-}
-
-# Blue team configuration
 variable "blue_team_name" {
-  description = "Name for the blue team access group"
+  description = "Name of the Blue Team group"
   type        = string
   default     = "Blue Team"
 }
 
-variable "blue_team_group_ids" {
-  description = "List of Azure AD group IDs for blue team members"
+variable "red_team_group_ids" {
+  description = "List of Azure AD group IDs for Red Team members"
   type        = list(string)
   default     = []
 }
 
-# Add at the end of the variables.tf file
+variable "blue_team_group_ids" {
+  description = "List of Azure AD group IDs for Blue Team members"
+  type        = list(string)
+  default     = []
+}
 
-# Logging configuration
 variable "enable_logs" {
-  description = "Enable logging for analysis"
+  description = "Enable logging to Azure Blob Storage"
   type        = bool
   default     = false
 }
 
-# Azure Storage variables
 variable "azure_storage_account" {
-  description = "Azure Storage Account name"
+  description = "Azure Storage account name for logs"
   type        = string
   default     = ""
 }
 
 variable "azure_storage_container" {
-  description = "Azure Storage Container name"
+  description = "Azure Storage container name for logs"
   type        = string
-  default     = "gateway-logs"
+  default     = ""
 }
 
 variable "azure_sas_token" {
-  description = "Azure SAS token for logging"
+  description = "Azure Storage SAS token for logs"
   type        = string
-  default     = ""
   sensitive   = true
+  default     = ""
 }
