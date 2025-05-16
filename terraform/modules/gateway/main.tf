@@ -2,9 +2,25 @@
 # This module creates gateway policies for content filtering, security controls, and network access
 
 # Gateway Location for Network Traffic Control
-resource "cloudflare_teams_location" "gateway" {
+resource "cloudflare_zero_trust_dns_location" "gateway" {
   account_id = var.account_id
   name       = var.location_name
+  
+  endpoints {
+    ipv4 {
+      enabled = true
+    }
+    ipv6 {
+      enabled = false
+    }
+    doh {
+      enabled = false
+    }
+    dot {
+      enabled = false
+    }
+  }
+  
   networks {
     network = "192.168.1.0/24"
   }

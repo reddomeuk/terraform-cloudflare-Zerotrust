@@ -1,5 +1,5 @@
-# WARP Module: Manages Cloudflare WARP client configuration and device enrollment
-# This module configures WARP client settings, device enrollment, and logging for security teams
+# WARP Module: Manages Cloudflare WARP client configuration and logging
+# This module configures WARP client settings and logging for Zero Trust access
 
 terraform {
   required_providers {
@@ -210,11 +210,10 @@ resource "cloudflare_zero_trust_warp_client" "warp" {
 }
 
 # WARP Device Posture Integration
-# Integrates WARP with device posture checks for enhanced security
 resource "cloudflare_zero_trust_device_posture_integration" "warp" {
   account_id = var.account_id
-  name       = "WARP Device Posture"
-  type       = "warp"
+  name       = "WARP Integration"
+  type       = "workspace_one"
   interval   = "30m"
   config {
     client_id     = var.azure_client_id
@@ -224,12 +223,25 @@ resource "cloudflare_zero_trust_device_posture_integration" "warp" {
 }
 
 # WARP Logging Configuration
-# Sets up logging to Azure Blob Storage for audit and security analysis
 resource "cloudflare_logpush_job" "warp_logs" {
-  account_id = var.account_id
-  name       = "WARP Logs"
+  account_id  = var.account_id
+  name        = "warp-logs"
+  dataset     = "device_posture_results"
   destination_conf = "azure://${var.azure_storage_account}.blob.core.windows.net/${var.azure_storage_container}?${var.azure_sas_token}"
-  dataset    = "warp"
-  enabled    = var.enable_logs
-  logpull_options = "fields=ClientIP,ClientRequestHost,ClientRequestMethod,ClientRequestURI,EdgeEndTimestamp,EdgeResponseBytes,EdgeResponseStatus,EdgeStartTimestamp,RayID,RequestHeaders,ResponseHeaders,UserAgent"
+  enabled     = var.enable_logs
+}
+
+# WARP Device Posture Rule
+resource "cloudflare_zero_trust_device_posture_rule" "warp" {
+  account_id = var.account_id
+  name       = "WARP Client Check"
+  type       = "workspace_one"
+  description = "Checks if WARP client is installed and running"
+  schedule   = "30m"
+  match {
+    platform = "windows"
+  }
+  input {
+    compliance_status = "compliant"
+  }
 }

@@ -67,10 +67,11 @@ resource "cloudflare_zero_trust_access_policy" "email_policy" {
 
 # Red Team Access Policy
 resource "cloudflare_zero_trust_access_policy" "red_team_policy" {
-  account_id = var.account_id
-  name       = "${var.red_team_name}-Security-Group-Policy"
-  decision   = "allow"
-  precedence = 1
+  account_id    = var.account_id
+  name          = "Red Team Access"
+  application_id = cloudflare_zero_trust_access_application.red_team_app.id
+  precedence    = 1
+  decision      = "allow"
 
   include {
     group = [var.red_team_id]
@@ -86,10 +87,11 @@ resource "cloudflare_zero_trust_access_policy" "red_team_policy" {
 
 # Blue Team Access Policy
 resource "cloudflare_zero_trust_access_policy" "blue_team_policy" {
-  account_id = var.account_id
-  name       = "${var.blue_team_name}-Security-Group-Policy"
-  decision   = "allow"
-  precedence = 2
+  account_id    = var.account_id
+  name          = "Blue Team Access"
+  application_id = cloudflare_zero_trust_access_application.blue_team_app.id
+  precedence    = 2
+  decision      = "allow"
 
   include {
     group = [var.blue_team_id]
