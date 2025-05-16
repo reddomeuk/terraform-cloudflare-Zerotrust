@@ -1,12 +1,53 @@
 variable "account_id" {
-  description = "Cloudflare Account ID"
+  description = "Cloudflare account ID"
   type        = string
 }
 
 variable "warp_name" {
-  description = "Name for the WARP configuration"
+  description = "Name of the WARP client configuration"
   type        = string
-  default     = "Default WARP Configuration"
+}
+
+variable "azure_client_id" {
+  description = "Azure AD client ID for WARP integration"
+  type        = string
+  sensitive   = true
+}
+
+variable "azure_client_secret" {
+  description = "Azure AD client secret for WARP integration"
+  type        = string
+  sensitive   = true
+}
+
+variable "azure_directory_id" {
+  description = "Azure AD directory ID for WARP integration"
+  type        = string
+}
+
+variable "enable_logs" {
+  description = "Enable WARP logging to Azure Blob Storage"
+  type        = bool
+  default     = false
+}
+
+variable "azure_storage_account" {
+  description = "Azure Storage account name for WARP logs"
+  type        = string
+  default     = ""
+}
+
+variable "azure_storage_container" {
+  description = "Azure Storage container name for WARP logs"
+  type        = string
+  default     = ""
+}
+
+variable "azure_sas_token" {
+  description = "Azure Storage SAS token for WARP logs"
+  type        = string
+  sensitive   = true
+  default     = ""
 }
 
 variable "azure_ad_provider_id" {
@@ -48,30 +89,4 @@ variable "blue_team_group_ids" {
   description = "List of Azure AD group IDs for Blue Team members"
   type        = list(string)
   default     = []
-}
-
-variable "enable_logs" {
-  description = "Enable Gateway logs"
-  type        = bool
-  default     = false
-}
-
-# Azure Storage variables
-variable "azure_storage_account" {
-  description = "Azure Storage Account name"
-  type        = string
-  default     = ""
-}
-
-variable "azure_storage_container" {
-  description = "Azure Storage Container name"
-  type        = string
-  default     = "gateway-logs"
-}
-
-variable "azure_sas_token" {
-  description = "Azure SAS token for logging"
-  type        = string
-  default     = ""
-  sensitive   = true
 }

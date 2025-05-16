@@ -1,47 +1,50 @@
+# IDP Module: Manages Cloudflare Zero Trust Identity Provider integration with Microsoft Entra ID
+# This module configures Microsoft Entra ID as the identity provider and creates access groups for Red and Blue teams
+
 terraform {
   required_providers {
     cloudflare = {
       source  = "cloudflare/cloudflare"
-      version = ">=4.40.0"  # Keep compatible with version 4
+      version = ">=4.40.0" # Keep compatible with version 4
     }
   }
 }
 
-resource "cloudflare_zero_trust_access_identity_provider" "microsoft_entra_id" {
+# Microsoft Entra ID Integration
+# Configures Microsoft Entra ID as the primary identity provider
+resource "cloudflare_zero_trust_access_identity_provider" "entra_id" {
   account_id = var.account_id
   name       = "Microsoft Entra ID"
-  type       = "azureAD"
+  type       = "azure-ad"
   config {
-    client_id      = var.azure_client_id
-    client_secret  = var.azure_client_secret
-    directory_id   = var.azure_directory_id
-    support_groups = true
-    claims         = ["email", "profile", "groups"]
+    client_id     = var.azure_client_id
+    client_secret = var.azure_client_secret
+    directory_id  = var.azure_directory_id
   }
 }
 
 # Red Team Access Group
+# Creates an access group for Red Team members based on Microsoft Entra ID security groups
 resource "cloudflare_zero_trust_access_group" "red_team" {
   account_id = var.account_id
   name       = var.red_team_name
-  
   include {
-    azure {
-      id = var.red_team_group_ids
-      identity_provider_id = cloudflare_zero_trust_access_identity_provider.microsoft_entra_id.id
+    gsuite {
+      email                = var.red_team_group_ids
+      identity_provider_id = cloudflare_zero_trust_access_identity_provider.entra_id.id
     }
   }
 }
 
 # Blue Team Access Group
+# Creates an access group for Blue Team members based on Microsoft Entra ID security groups
 resource "cloudflare_zero_trust_access_group" "blue_team" {
   account_id = var.account_id
   name       = var.blue_team_name
-  
   include {
-    azure {
-      id = var.blue_team_group_ids
-      identity_provider_id = cloudflare_zero_trust_access_identity_provider.microsoft_entra_id.id
+    gsuite {
+      email                = var.blue_team_group_ids
+      identity_provider_id = cloudflare_zero_trust_access_identity_provider.entra_id.id
     }
   }
 }
@@ -50,12 +53,12 @@ resource "cloudflare_zero_trust_access_group" "blue_team" {
 resource "cloudflare_zero_trust_access_group" "secure_devices" {
   account_id = var.account_id
   name       = "Secure Devices"
-  
+
   # Add an include block with everyone = true to meet requirement
   include {
     everyone = true
   }
-  
+
   require {
     device_posture = ["disk_encryption", "os_version"]
   }

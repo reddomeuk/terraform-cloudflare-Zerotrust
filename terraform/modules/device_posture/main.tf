@@ -1,27 +1,75 @@
+# Device Posture Module: Manages Cloudflare Zero Trust device posture rules and Microsoft Intune integration
+# This module creates device compliance rules and integrates with Microsoft Intune for device posture checks
+
 terraform {
   required_providers {
     cloudflare = {
       source  = "cloudflare/cloudflare"
-      version = "~> 4.0"  # Keep at version 4
+      version = "~> 4.0" # Keep at version 4
     }
   }
 }
 
-# Improved Intune integration
-resource "cloudflare_zero_trust_device_posture_integration" "intune_integration" {
+# Microsoft Intune Integration for Device Posture
+resource "cloudflare_zero_trust_device_posture_integration" "intune" {
   account_id = var.account_id
-  name       = "Microsoft Intune Integration"
-  type       = "intune"
-  interval   = "15m"
-  
+  name       = "Microsoft Intune"
+  type       = "workspace_one"
+  interval   = "30m"
   config {
     client_id     = var.intune_client_id
     client_secret = var.intune_client_secret
     customer_id   = var.azure_tenant_id
   }
-  
-  lifecycle {
-    create_before_destroy = true
+}
+
+# Disk Encryption Rule
+# Ensures devices have disk encryption enabled for data protection
+resource "cloudflare_zero_trust_device_posture_rule" "disk_encryption" {
+  account_id = var.account_id
+  name       = "Disk Encryption Check"
+  type       = "disk_encryption"
+  description = "Checks if disk encryption is enabled on the device"
+  schedule   = "30m"
+  match {
+    platform = "windows"
+  }
+  input {
+    check_disks = ["C:"]
+    require_all = true
+  }
+}
+
+# OS Version Rule
+# Ensures devices are running supported and secure operating system versions
+resource "cloudflare_zero_trust_device_posture_rule" "os_version" {
+  account_id = var.account_id
+  name       = "OS Version Check"
+  type       = "os_version"
+  description = "Checks if the device is running a supported OS version"
+  schedule   = "30m"
+  match {
+    platform = "windows"
+  }
+  input {
+    version = "10.0.19044"
+    operator = ">="
+  }
+}
+
+# Intune Compliance Rule
+# Checks device compliance status through Microsoft Intune
+resource "cloudflare_zero_trust_device_posture_rule" "intune_compliance" {
+  account_id = var.account_id
+  name       = "Intune Compliance Check"
+  type       = "workspace_one"
+  description = "Checks device compliance through Microsoft Intune"
+  schedule   = "30m"
+  match {
+    platform = "windows"
+  }
+  input {
+    compliance_status = true
   }
 }
 
@@ -33,64 +81,16 @@ removed {
   }
 }
 
-# Intune Compliance Check
-resource "cloudflare_zero_trust_device_posture_rule" "intune_compliance" {
-  account_id  = var.account_id
-  name        = "Intune Compliance Check"
-  description = "Check if device is compliant according to Intune"
-  type        = "intune"
-  
-  input {
-    compliance_status = "compliant"
-    connection_id     = cloudflare_zero_trust_device_posture_integration.intune_integration.id
-  }
-  
-  depends_on = [cloudflare_zero_trust_device_posture_integration.intune_integration]
-}
-
-# OS Version Check with corrected version format
-resource "cloudflare_zero_trust_device_posture_rule" "os_version_windows" {
-  account_id  = var.account_id
-  name        = "Windows OS Version Check"
-  description = "Ensure Windows devices are running supported OS version"
-  type        = "os_version"
-  
-  match {
-    platform = "windows"
-  }
-  
-  input {
-    version = "10.0.0"  # Fixed semver format
-    operator = ">="
-  }
-  
-  depends_on = [cloudflare_zero_trust_device_posture_integration.intune_integration]
-}
-
-# Disk Encryption Check
-resource "cloudflare_zero_trust_device_posture_rule" "disk_encryption" {
-  account_id  = var.account_id
-  name        = "Disk Encryption Check"
-  description = "Ensure device disk is encrypted"
-  type        = "disk_encryption"
-  
-  match {
-    platform = "windows"
-  }
-  
-  depends_on = [cloudflare_zero_trust_device_posture_integration.intune_integration]
-}
-
 # Firewall Check - additional security
 resource "cloudflare_zero_trust_device_posture_rule" "firewall_check" {
   account_id  = var.account_id
   name        = "Firewall Status Check"
   description = "Ensure device firewall is enabled"
   type        = "firewall"
-  
+
   match {
     platform = "windows"
   }
-  
+
   depends_on = [cloudflare_zero_trust_device_posture_integration.intune_integration]
 }

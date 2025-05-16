@@ -1,3 +1,55 @@
+# Gateway Module: Manages Cloudflare Zero Trust Gateway policies and network security rules
+# This module creates gateway policies for content filtering, security controls, and network access
+
+# Gateway Location for Network Traffic Control
+resource "cloudflare_zero_trust_gateway_location" "gateway" {
+  account_id = var.account_id
+  name       = var.location_name
+  networks {
+    network = "192.168.1.0/24"
+  }
+}
+
+# Security Threat Blocking Policy
+# Blocks access to known malicious domains and content
+resource "cloudflare_zero_trust_gateway_policy" "security_blocks" {
+  account_id = var.account_id
+  name       = "Security Threat Blocks"
+  precedence = 1
+  action     = "block"
+  enabled    = true
+  description = "Blocks access to known malicious domains and content"
+
+  filters = ["security-threats"]
+}
+
+# Security Tools Access Policy
+# Allows access to approved security tools and resources
+resource "cloudflare_zero_trust_gateway_policy" "security_tools" {
+  account_id = var.account_id
+  name       = "Security Tools Access"
+  precedence = 2
+  action     = "allow"
+  enabled    = true
+  description = "Allows access to approved security tools and resources"
+
+  filters = ["security-tools"]
+}
+
+# DNS Filtering Policy
+# Controls DNS resolution for security and compliance
+resource "cloudflare_zero_trust_gateway_policy" "dns_filter" {
+  account_id = var.account_id
+  name       = "DNS Filtering"
+  precedence = 3
+  action     = "block"
+  enabled    = true
+  description = "Controls DNS resolution for security and compliance"
+
+  filters = ["dns"]
+  traffic = "any(dns.domains[*] matches \".*\")"
+}
+
 terraform {
   required_providers {
     cloudflare = {

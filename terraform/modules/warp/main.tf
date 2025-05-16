@@ -1,3 +1,6 @@
+# WARP Module: Manages Cloudflare WARP client configuration and device enrollment
+# This module configures WARP client settings, device enrollment, and logging for security teams
+
 terraform {
   required_providers {
     cloudflare = {
@@ -26,7 +29,7 @@ resource "cloudflare_zero_trust_gateway_policy" "content_filtering_dns" {
   precedence  = 20
   action      = "block"
   filters     = ["dns"]
-  traffic     = "any(dns.content_category[*] in {1 4 5 6 7})"  
+  traffic     = "any(dns.content_category[*] in {1 4 5 6 7})"
 }
 
 # Content filtering for HTTP 
@@ -104,7 +107,7 @@ resource "cloudflare_zero_trust_gateway_policy" "security_testing_domains" {
   action      = "allow"
   filters     = ["dns"]
   # Simplified to use just domain patterns without user identity
-  traffic     = "any(dns.domains[*] matches \".*security.*|.*pentest.*|.*hack.*\")"
+  traffic = "any(dns.domains[*] matches \".*security.*|.*pentest.*|.*hack.*\")"
 }
 
 # Blue Team special access - using domain patterns
@@ -116,7 +119,7 @@ resource "cloudflare_zero_trust_gateway_policy" "monitoring_domains" {
   action      = "allow"
   filters     = ["dns"]
   # Simplified to use just domain patterns without user identity
-  traffic     = "any(dns.domains[*] matches \".*monitor.*|.*analytics.*|.*siem.*\")"
+  traffic = "any(dns.domains[*] matches \".*monitor.*|.*analytics.*|.*siem.*\")"
 }
 
 # Default block rule with valid match pattern
@@ -128,19 +131,19 @@ resource "cloudflare_zero_trust_gateway_policy" "default_block" {
   action      = "block"
   filters     = ["dns"]
   # Fix the traffic filter syntax
-  traffic     = "any(dns.domains[*] matches \".*\")"
+  traffic = "any(dns.domains[*] matches \".*\")"
 }
 
 # WARP enrollment application
 resource "cloudflare_zero_trust_access_application" "warp_enrollment_app" {
-  account_id             = var.account_id
-  session_duration       = "24h"
-  name                   = "${var.warp_name} - Device Enrollment"
-  allowed_idps           = [var.azure_ad_provider_id]
+  account_id                = var.account_id
+  session_duration          = "24h"
+  name                      = "${var.warp_name} - Device Enrollment"
+  allowed_idps              = [var.azure_ad_provider_id]
   auto_redirect_to_identity = true
-  type                   = "warp"
-  app_launcher_visible   = false
-  
+  type                      = "warp"
+  app_launcher_visible      = false
+
   lifecycle {
     create_before_destroy = true
   }
@@ -153,10 +156,10 @@ resource "cloudflare_zero_trust_access_policy" "red_team_warp_policy" {
   name           = "Red Team WARP Access"
   decision       = "allow"
   precedence     = 1
-  
+
   include {
     azure {
-      id = var.red_team_group_ids
+      id                   = var.red_team_group_ids
       identity_provider_id = var.azure_ad_provider_id
     }
   }
@@ -168,22 +171,65 @@ resource "cloudflare_zero_trust_access_policy" "blue_team_warp_policy" {
   name           = "Blue Team WARP Access"
   decision       = "allow"
   precedence     = 2
-  
+
   include {
     azure {
-      id = var.blue_team_group_ids
+      id                   = var.blue_team_group_ids
       identity_provider_id = var.azure_ad_provider_id
     }
   }
 }
 
-resource "cloudflare_logpush_job" "gateway_logs" {
-  count      = var.enable_logs ? 1 : 0
-  name       = "gateway-logs"
+# WARP Client Configuration
+# Sets up the WARP client with team-specific settings and security requirements
+resource "cloudflare_zero_trust_warp_client" "warp" {
   account_id = var.account_id
-  dataset    = "gateway_dns"
-  destination_conf = "azure://sentinelsalt1nzs.blob.core.windows.net/sentineldata?sv=2023-01-03&st=2025-05-04T20%3A59%3A04Z&se=2030-12-05T21%3A59%3A00Z&sr=c&sp=w&sig=49aLsshytOoVK28zDg5zt3TyrVCodnDyUQEylIah6Nk%3D"
-  logpull_options = "fields=ClientIP,ClientRequestHost,ClientRequestPath,ClientRequestQuery,EdgeResponseBytes"
-  ownership_challenge = "ownership-challenge-ecb9c648.txt"
-  enabled = true
+  name       = var.warp_name
+  enabled    = true
+
+  # Device enrollment settings
+  device_enrollment {
+    enabled = true
+    require_all = true
+    rules {
+      platform = "windows"
+      os_version {
+        operator = ">="
+        version  = "10.0.19044"
+      }
+    }
+  }
+
+  # Security settings
+  security {
+    tls_verify = true
+    dns {
+      servers = ["1.1.1.1", "1.0.0.1"]
+    }
+  }
+}
+
+# WARP Device Posture Integration
+# Integrates WARP with device posture checks for enhanced security
+resource "cloudflare_zero_trust_device_posture_integration" "warp" {
+  account_id = var.account_id
+  name       = "WARP Device Posture"
+  type       = "warp"
+  interval   = "30m"
+  config {
+    client_id     = var.azure_client_id
+    client_secret = var.azure_client_secret
+    customer_id   = var.azure_directory_id
+  }
+}
+
+# WARP Logging Configuration
+# Sets up logging to Azure Blob Storage for audit and security analysis
+resource "cloudflare_logpush_job" "warp_logs" {
+  account_id = var.account_id
+  name       = "WARP Logs"
+  destination_conf = "azure://${var.azure_storage_account}.blob.core.windows.net/${var.azure_storage_container}?${var.azure_sas_token}"
+  dataset    = "warp"
+  enabled    = var.enable_logs
+  logpull_options = "fields=ClientIP,ClientRequestHost,ClientRequestMethod,ClientRequestURI,EdgeEndTimestamp,EdgeResponseBytes,EdgeResponseStatus,EdgeStartTimestamp,RayID,RequestHeaders,ResponseHeaders,UserAgent"
 }

@@ -1,5 +1,3 @@
-
-```markdown
 # Cloudflare Zero Trust Red Team/Blue Team Security Framework
 
 This repository contains Terraform code for implementing a comprehensive Cloudflare Zero Trust security framework designed specifically for security teams with separate Red Team and Blue Team functions.
@@ -20,7 +18,7 @@ The infrastructure consists of the following components:
 
 - **Identity Integration**: Microsoft Entra ID integration with SCIM provisioning
 - **Device Posture**: Microsoft Intune integration for device compliance
-- **Access Applications**: Shared and team-specific protected applications
+- **Access Applications**: Team-specific protected applications (Red Team and Blue Team only)
 - **Access Policies**: Role-based access controls
 - **Gateway Policies**: Content and security filtering for network traffic
 - **WARP Client**: Device enrollment and secure connectivity
@@ -148,10 +146,6 @@ resource "cloudflare_zero_trust_device_posture_rule" "intune_compliance" {
 ### Access Applications
 
 ```terraform
-resource "cloudflare_zero_trust_access_application" "app" {
-  # Shared application configuration
-}
-
 resource "cloudflare_zero_trust_access_application" "red_team_app" {
   # Red Team specific application
 }
@@ -284,4 +278,36 @@ MIT
 - 1.0.1: Fixed policy precedence conflicts
 - 1.0.2: Added Microsoft Intune integration
 - 1.1.0: Added SCIM provisioning
+
+## Remote State Configuration (Recommended)
+
+To enable safe collaboration and state management, use a remote backend. Example for Terraform Cloud:
+
+```hcl
+terraform {
+  cloud {
+    organization = "your-org"
+    workspaces {
+      name = "your-workspace"
+    }
+  }
+}
 ```
+
+Or for AWS S3:
+
+```hcl
+terraform {
+  backend "s3" {
+    bucket         = "your-tf-state-bucket"
+    key            = "path/to/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "your-tf-lock-table"
+    encrypt        = true
+  }
+}
+```
+
+## Sensitive Variable Handling
+
+Sensitive variables (API tokens, secrets) are marked as `sensitive = true` in the code. Use environment variables or a secrets manager to provide these values securely. Never commit secrets to version control.
