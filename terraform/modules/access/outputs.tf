@@ -19,6 +19,7 @@ output "blue_team_app_domain" {
   value       = cloudflare_zero_trust_access_application.blue_team.domain
 }
 
+<<<<<<< HEAD
 output "shared_app_domain" {
   description = "Domain of the shared application"
   value       = cloudflare_zero_trust_access_application.app.domain
@@ -35,6 +36,18 @@ output "shared_app_domain" {
 #   description = "ID of the Blue Team tunnel"
 #   value       = cloudflare_zero_trust_tunnel_cloudflared.blue_team.id
 # }
+=======
+# Tunnel Outputs
+output "red_team_tunnel_id" {
+  description = "ID of the Red Team tunnel"
+  value       = cloudflare_zero_trust_tunnel_cloudflared.red_team.id
+}
+
+output "blue_team_tunnel_id" {
+  description = "ID of the Blue Team tunnel"
+  value       = cloudflare_zero_trust_tunnel_cloudflared.blue_team.id
+}
+>>>>>>> parent of 448b4ad (rls13)
 
 # output "red_team_tunnel_secret" {
 #   description = "Secret for the Red Team tunnel"
