@@ -96,10 +96,6 @@ module "access" {
   red_team_id          = module.idp.red_team_id
   blue_team_id         = module.idp.blue_team_id
   azure_ad_provider_id = module.idp.entra_idp_id
-  device_posture_rule_ids = [
-    module.device_posture.disk_encryption_rule_id,
-    module.device_posture.os_version_rule_id,
-    module.device_posture.intune_compliance_rule_id
-  ]
+  device_posture_rule_ids = module.device_posture.all_posture_rule_ids
   depends_on = [cloudflare_zero_trust_gateway_settings.zero_trust, module.device_posture, module.idp]
 }

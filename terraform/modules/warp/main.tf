@@ -19,6 +19,7 @@ resource "cloudflare_zero_trust_gateway_policy" "consolidated_security_blocks" {
   action      = "block"
   filters     = ["dns"]
   traffic     = "any(dns.security_category[*] in {4 7 9 80})"
+  enabled     = true
 }
 
 # Content filtering for DNS
@@ -30,6 +31,7 @@ resource "cloudflare_zero_trust_gateway_policy" "content_filtering_dns" {
   action      = "block"
   filters     = ["dns"]
   traffic     = "any(dns.content_category[*] in {1 4 5 6 7})"
+  enabled     = true
 }
 
 # Content filtering for HTTP 
@@ -41,6 +43,7 @@ resource "cloudflare_zero_trust_gateway_policy" "content_filtering_http" {
   action      = "block"
   filters     = ["http"]
   traffic     = "any(http.request.uri.content_category[*] in {1 4 5 6 7})"
+  enabled     = true
 }
 
 # Block streaming services
@@ -52,6 +55,7 @@ resource "cloudflare_zero_trust_gateway_policy" "block_streaming" {
   action      = "block"
   filters     = ["http"]
   traffic     = "any(http.request.uri.content_category[*] in {96})"
+  enabled     = true
 }
 
 # File upload blocking with exceptions for approved services
@@ -63,6 +67,7 @@ resource "cloudflare_zero_trust_gateway_policy" "block_file_uploads" {
   action      = "block"
   filters     = ["http"]
   traffic     = "http.request.method == \"POST\" and http.request.uri matches \".*upload.*\" and not(http.request.uri matches \".*(sharepoint|onedrive|teams).*\")"
+  enabled     = true
 }
 
 # Security tools allowlist - DNS only with proper syntax for domains
@@ -74,6 +79,7 @@ resource "cloudflare_zero_trust_gateway_policy" "security_tools_dns" {
   action      = "allow"
   filters     = ["dns"]
   traffic     = "any(dns.domains[*] in {\"kali.org\" \"metasploit.com\" \"hackerone.com\" \"splunk.com\" \"elastic.co\" \"sentinelone.com\"})"
+  enabled     = true
 }
 
 # Security tools allowlist - HTTP
@@ -85,6 +91,7 @@ resource "cloudflare_zero_trust_gateway_policy" "security_tools_http" {
   action      = "allow"
   filters     = ["http"]
   traffic     = "http.request.uri matches \".*security-tools.*\" or http.request.uri matches \".*security-monitor.*\""
+  enabled     = true
 }
 
 # Allow access to essential categories (education, business, government)
@@ -96,42 +103,52 @@ resource "cloudflare_zero_trust_gateway_policy" "allow_essential_categories" {
   action      = "allow"
   filters     = ["http"]
   traffic     = "any(http.request.uri.content_category[*] in {12 13 18})"
+  enabled     = true
 }
 
-# Red Team special access - using domain patterns
+# Red Team special access - using domain patterns with identity check
 resource "cloudflare_zero_trust_gateway_policy" "security_testing_domains" {
   account_id  = var.account_id
-  name        = "Security Testing Domains"
-  description = "Allow access to security testing domains"
+  name        = "Security Testing Domains - Red Team"
+  description = "Allow Red Team access to security testing domains"
   precedence  = 7
   action      = "allow"
   filters     = ["dns"]
-  # Simplified to use just domain patterns without user identity
-  traffic = "any(dns.domains[*] matches \".*security.*|.*pentest.*|.*hack.*\")"
+  traffic = join(" and ", [
+    "any(dns.domains[*] matches \".*security.*|.*pentest.*|.*hack.*\")",
+    "any(user.group_ids[*] in {\"5a071d2a-8597-4096-a6b3-1d702cfab3c4\"})"
+  ])
+  enabled = true
 }
 
-# Blue Team special access - using domain patterns
+# Blue Team special access - using domain patterns with identity check
 resource "cloudflare_zero_trust_gateway_policy" "monitoring_domains" {
   account_id  = var.account_id
-  name        = "Monitoring Tools Domains"
-  description = "Allow access to monitoring tools domains"
+  name        = "Monitoring Tools Domains - Blue Team"
+  description = "Allow Blue Team access to monitoring tools domains"
   precedence  = 8
   action      = "allow"
   filters     = ["dns"]
-  # Simplified to use just domain patterns without user identity
-  traffic = "any(dns.domains[*] matches \".*monitor.*|.*analytics.*|.*siem.*\")"
+  traffic = join(" and ", [
+    "any(dns.domains[*] matches \".*monitor.*|.*analytics.*|.*siem.*\")",
+    "any(user.group_ids[*] in {\"a3008467-e39c-43f6-a7ad-4769bcefe01e\"})"
+  ])
+  enabled = true
 }
 
-# Default block rule with valid match pattern
-resource "cloudflare_zero_trust_gateway_policy" "default_block" {
+# General internet access for authenticated team members
+resource "cloudflare_zero_trust_gateway_policy" "authenticated_internet_access" {
   account_id  = var.account_id
-  name        = "Default Block Rule"
-  description = "Block all other traffic"
+  name        = "Authenticated Internet Access"
+  description = "Allow general internet access for Red and Blue team members"
   precedence  = 999
-  action      = "block"
+  action      = "allow"
   filters     = ["dns"]
-  # Fix the traffic filter syntax
-  traffic = "any(dns.domains[*] matches \".*\")"
+  traffic = join(" and ", [
+    "any(dns.domains[*] matches \".*\")",
+    "any(user.group_ids[*] in {\"5a071d2a-8597-4096-a6b3-1d702cfab3c4\" \"a3008467-e39c-43f6-a7ad-4769bcefe01e\"})"
+  ])
+  enabled = true
 }
 
 # WARP enrollment application
@@ -195,11 +212,12 @@ resource "cloudflare_zero_trust_device_posture_integration" "warp" {
 
 # WARP Logging Configuration
 resource "cloudflare_logpush_job" "warp_logs" {
-  account_id  = var.account_id
-  name        = "warp-logs"
-  dataset     = "device_posture_results"
+  count            = var.enable_logs ? 1 : 0
+  account_id       = var.account_id
+  name             = "warp-logs"
+  dataset          = "gateway_dns"
   destination_conf = "azure://${var.azure_storage_account}.blob.core.windows.net/${var.azure_storage_container}?${var.azure_sas_token}"
-  enabled     = var.enable_logs
+  enabled          = true
 }
 
 # WARP Device Posture Rule
@@ -209,6 +227,7 @@ resource "cloudflare_zero_trust_device_posture_rule" "warp" {
   type       = "workspace_one"
   description = "Checks if WARP client is installed and running"
   schedule   = "30m"
+  expiration = "30m"
   match {
     platform = "windows"
   }

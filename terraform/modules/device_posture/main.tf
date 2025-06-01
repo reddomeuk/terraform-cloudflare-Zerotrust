@@ -5,7 +5,7 @@ terraform {
   required_providers {
     cloudflare = {
       source  = "cloudflare/cloudflare"
-      version = "~> 4.0" # Keep at version 4
+      version = "~> 4.0"
     }
   }
 }
@@ -23,14 +23,14 @@ resource "cloudflare_zero_trust_device_posture_integration" "intune" {
   }
 }
 
-# Disk Encryption Rule
-# Ensures devices have disk encryption enabled for data protection
+# Disk Encryption Rule - Windows
 resource "cloudflare_zero_trust_device_posture_rule" "disk_encryption" {
   account_id = var.account_id
-  name       = "Disk Encryption Check"
+  name       = "Disk Encryption Check - Windows"
   type       = "disk_encryption"
-  description = "Checks if disk encryption is enabled on the device"
+  description = "Checks if disk encryption is enabled on Windows devices"
   schedule   = "30m"
+  expiration = "30m"
   match {
     platform = "windows"
   }
@@ -40,14 +40,31 @@ resource "cloudflare_zero_trust_device_posture_rule" "disk_encryption" {
   }
 }
 
-# OS Version Rule
-# Ensures devices are running supported and secure operating system versions
+# Disk Encryption Rule - macOS
+resource "cloudflare_zero_trust_device_posture_rule" "disk_encryption_macos" {
+  account_id = var.account_id
+  name       = "Disk Encryption Check - macOS"
+  type       = "disk_encryption"
+  description = "Checks if FileVault is enabled on macOS devices"
+  schedule   = "30m"
+  expiration = "30m"
+  match {
+    platform = "mac"
+  }
+  input {
+    check_disks = ["/"]
+    require_all = true
+  }
+}
+
+# OS Version Rule - Windows
 resource "cloudflare_zero_trust_device_posture_rule" "os_version" {
   account_id = var.account_id
-  name       = "OS Version Check"
+  name       = "OS Version Check - Windows"
   type       = "os_version"
-  description = "Checks if the device is running a supported OS version"
+  description = "Checks if Windows device is running a supported OS version"
   schedule   = "30m"
+  expiration = "30m"
   match {
     platform = "windows"
   }
@@ -57,14 +74,31 @@ resource "cloudflare_zero_trust_device_posture_rule" "os_version" {
   }
 }
 
-# Intune Compliance Rule
-# Checks device compliance status through Microsoft Intune
+# OS Version Rule - macOS
+resource "cloudflare_zero_trust_device_posture_rule" "os_version_macos" {
+  account_id = var.account_id
+  name       = "OS Version Check - macOS"
+  type       = "os_version"
+  description = "Checks if macOS device is running a supported OS version"
+  schedule   = "30m"
+  expiration = "30m"
+  match {
+    platform = "mac"
+  }
+  input {
+    version = "12.0.0"
+    operator = ">="
+  }
+}
+
+# Intune Compliance Rule - Windows
 resource "cloudflare_zero_trust_device_posture_rule" "intune_compliance" {
   account_id = var.account_id
-  name       = "Intune Compliance Check"
+  name       = "Intune Compliance Check - Windows"
   type       = "intune"
-  description = "Checks device compliance through Microsoft Intune"
+  description = "Checks Windows device compliance through Microsoft Intune"
   schedule   = "30m"
+  expiration = "30m"
   match {
     platform = "windows"
   }
@@ -73,24 +107,54 @@ resource "cloudflare_zero_trust_device_posture_rule" "intune_compliance" {
   }
 }
 
+# Intune Compliance Rule - macOS
+resource "cloudflare_zero_trust_device_posture_rule" "intune_compliance_macos" {
+  account_id = var.account_id
+  name       = "Intune Compliance Check - macOS"
+  type       = "intune"
+  description = "Checks macOS device compliance through Microsoft Intune"
+  schedule   = "30m"
+  expiration = "30m"
+  match {
+    platform = "mac"
+  }
+  input {
+    compliance_status = "compliant"
+  }
+}
+
+# Firewall Check - Windows
+resource "cloudflare_zero_trust_device_posture_rule" "firewall_check" {
+  account_id  = var.account_id
+  name        = "Firewall Status Check - Windows"
+  description = "Ensure Windows firewall is enabled"
+  type        = "firewall"
+  schedule    = "30m"
+  expiration  = "30m"
+  match {
+    platform = "windows"
+  }
+  depends_on = [cloudflare_zero_trust_device_posture_integration.intune]
+}
+
+# Firewall Check - macOS
+resource "cloudflare_zero_trust_device_posture_rule" "firewall_check_macos" {
+  account_id  = var.account_id
+  name        = "Firewall Status Check - macOS"
+  description = "Ensure macOS firewall is enabled"
+  type        = "firewall"
+  schedule    = "30m"
+  expiration  = "30m"
+  match {
+    platform = "mac"
+  }
+  depends_on = [cloudflare_zero_trust_device_posture_integration.intune]
+}
+
 # Using removed block to safely remove the domain_joined_check resource
 removed {
   from = cloudflare_zero_trust_device_posture_rule.domain_joined_check
   lifecycle {
     destroy = false
   }
-}
-
-# Firewall Check - additional security
-resource "cloudflare_zero_trust_device_posture_rule" "firewall_check" {
-  account_id  = var.account_id
-  name        = "Firewall Status Check"
-  description = "Ensure device firewall is enabled"
-  type        = "firewall"
-
-  match {
-    platform = "windows"
-  }
-
-  depends_on = [cloudflare_zero_trust_device_posture_integration.intune]
 }
