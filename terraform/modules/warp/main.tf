@@ -106,7 +106,7 @@ resource "cloudflare_zero_trust_gateway_policy" "allow_essential_categories" {
   enabled     = true
 }
 
-# Red Team special access - using domain patterns with identity check
+# Red Team special access - with proper identity check
 resource "cloudflare_zero_trust_gateway_policy" "security_testing_domains" {
   account_id  = var.account_id
   name        = "Security Testing Domains - Red Team"
@@ -114,14 +114,11 @@ resource "cloudflare_zero_trust_gateway_policy" "security_testing_domains" {
   precedence  = 7
   action      = "allow"
   filters     = ["dns"]
-  traffic = join(" and ", [
-    "any(dns.domains[*] matches \".*security.*|.*pentest.*|.*hack.*\")",
-    "any(user.group_ids[*] in {\"5a071d2a-8597-4096-a6b3-1d702cfab3c4\"})"
-  ])
+  traffic = "any(dns.domains[*] matches \".*security.*|.*pentest.*|.*hack.*\") and any(user.group_ids[*] in {\"5a071d2a-8597-4096-a6b3-1d702cfab3c4\"})"
   enabled = true
 }
 
-# Blue Team special access - using domain patterns with identity check
+# Blue Team special access - with proper identity check
 resource "cloudflare_zero_trust_gateway_policy" "monitoring_domains" {
   account_id  = var.account_id
   name        = "Monitoring Tools Domains - Blue Team"
@@ -129,10 +126,7 @@ resource "cloudflare_zero_trust_gateway_policy" "monitoring_domains" {
   precedence  = 8
   action      = "allow"
   filters     = ["dns"]
-  traffic = join(" and ", [
-    "any(dns.domains[*] matches \".*monitor.*|.*analytics.*|.*siem.*\")",
-    "any(user.group_ids[*] in {\"a3008467-e39c-43f6-a7ad-4769bcefe01e\"})"
-  ])
+  traffic = "any(dns.domains[*] matches \".*monitor.*|.*analytics.*|.*siem.*\") and any(user.group_ids[*] in {\"a3008467-e39c-43f6-a7ad-4769bcefe01e\"})"
   enabled = true
 }
 
@@ -141,13 +135,10 @@ resource "cloudflare_zero_trust_gateway_policy" "authenticated_internet_access" 
   account_id  = var.account_id
   name        = "Authenticated Internet Access"
   description = "Allow general internet access for Red and Blue team members"
-  precedence  = 999
+  precedence  = 100
   action      = "allow"
   filters     = ["dns"]
-  traffic = join(" and ", [
-    "any(dns.domains[*] matches \".*\")",
-    "any(user.group_ids[*] in {\"5a071d2a-8597-4096-a6b3-1d702cfab3c4\" \"a3008467-e39c-43f6-a7ad-4769bcefe01e\"})"
-  ])
+  traffic = "any(dns.domains[*] matches \".*\") and any(user.group_ids[*] in {\"5a071d2a-8597-4096-a6b3-1d702cfab3c4\" \"a3008467-e39c-43f6-a7ad-4769bcefe01e\"})"
   enabled = true
 }
 
