@@ -100,55 +100,56 @@ resource "cloudflare_zero_trust_access_policy" "blue_team" {
   }
 }
 
-# Tunnel Secrets
-resource "random_id" "red_team_tunnel_secret" {
-  byte_length = 32
-}
+# TUNNELS ARE TEMPORARILY REMOVED - Uncomment when ready to use
+# # Tunnel Secrets
+# resource "random_id" "red_team_tunnel_secret" {
+#   byte_length = 32
+# }
 
-resource "random_id" "blue_team_tunnel_secret" {
-  byte_length = 32
-}
+# resource "random_id" "blue_team_tunnel_secret" {
+#   byte_length = 32
+# }
 
-# Red Team Tunnel
-resource "cloudflare_zero_trust_tunnel_cloudflared" "red_team" {
-  account_id = var.cloudflare_account_id
-  name       = "red-team-tunnel"
-  secret     = random_id.red_team_tunnel_secret.b64_std
-}
+# # Red Team Tunnel
+# resource "cloudflare_zero_trust_tunnel_cloudflared" "red_team" {
+#   account_id = var.cloudflare_account_id
+#   name       = "red-team-tunnel"
+#   secret     = random_id.red_team_tunnel_secret.b64_std
+# }
 
-resource "cloudflare_zero_trust_tunnel_cloudflared_config" "red_team" {
-  account_id = var.cloudflare_account_id
-  tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.red_team.id
+# resource "cloudflare_zero_trust_tunnel_cloudflared_config" "red_team" {
+#   account_id = var.cloudflare_account_id
+#   tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.red_team.id
 
-  config {
-    ingress_rule {
-      hostname = "red-team.${var.domain}"
-      service  = "http://localhost:8080"
-    }
-    ingress_rule {
-      service = "http_status:404"
-    }
-  }
-}
+#   config {
+#     ingress_rule {
+#       hostname = "red-team.${var.domain}"
+#       service  = "http://localhost:8080"
+#     }
+#     ingress_rule {
+#       service = "http_status:404"
+#     }
+#   }
+# }
 
-# Blue Team Tunnel
-resource "cloudflare_zero_trust_tunnel_cloudflared" "blue_team" {
-  account_id = var.cloudflare_account_id
-  name       = "blue-team-tunnel"
-  secret     = random_id.blue_team_tunnel_secret.b64_std
-}
+# # Blue Team Tunnel
+# resource "cloudflare_zero_trust_tunnel_cloudflared" "blue_team" {
+#   account_id = var.cloudflare_account_id
+#   name       = "blue-team-tunnel"
+#   secret     = random_id.blue_team_tunnel_secret.b64_std
+# }
 
-resource "cloudflare_zero_trust_tunnel_cloudflared_config" "blue_team" {
-  account_id = var.cloudflare_account_id
-  tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.blue_team.id
+# resource "cloudflare_zero_trust_tunnel_cloudflared_config" "blue_team" {
+#   account_id = var.cloudflare_account_id
+#   tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.blue_team.id
 
-  config {
-    ingress_rule {
-      hostname = "blue-team.${var.domain}"
-      service  = "http://localhost:8080"
-    }
-    ingress_rule {
-      service = "http_status:404"
-    }
-  }
-}
+#   config {
+#     ingress_rule {
+#       hostname = "blue-team.${var.domain}"
+#       service  = "http://localhost:8080"
+#     }
+#     ingress_rule {
+#       service = "http_status:404"
+#     }
+#   }
+# }
